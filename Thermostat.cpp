@@ -76,7 +76,13 @@ load_Cal();
 // Alarm.alarmRepeat(17,45,0,EveningAlarm);  // 5:45pm every day 
 //Alarm.alarmRepeat(dayofweek, hours, minutes, seconds, function); 
 //"dayofweek" can be dowSunday, dowMonday, dowTuesday, dowWednesday, dowThursday, dowFriday, or dowSaturday. 
+//1..7 sunday to saturday
+//8 week day
+//9 week end
+//0 ALL
+
 DEBUG_PRINTLN(F("Setting Alarms"));
+
 if (Calidx >0) {
         AlarmTab =new AlarmID_t[Calidx]; //malloc(Calidx*sizeof(AlarmID_t*))
         }
@@ -131,8 +137,6 @@ else if (lconfig->domo) ldomo->sendMode(F("Off"));
 
 //set alarms wrt the mode
 //1..7 sunday to saturday
-//8 week day
-//9 week end
 //0 ALL
 void Thermostat::setAlarm(uint8_t i,char mode, uint8_t nbday,uint8_t h,uint8_t s)
 {
@@ -153,7 +157,7 @@ void Thermostat::setAlarm(uint8_t i,char mode, uint8_t nbday,uint8_t h,uint8_t s
           case 'C':
            if (nbday==0)
           AlarmTab[i]=Alarm.alarmRepeat(h,s,0, globalComfort);
-          else  AlarmTab[i]=Alarm.alarmRepeat((timeDayOfWeek_t)nbday,h,s,0,globalComfort);
+          else  AlarmTab[i]=Alarm.alarmRepeat((timeDayOfWeek_t)nbday,h,s,0, globalComfort);
           break;
 
           case 'F':
@@ -473,7 +477,7 @@ String cmdmax;
 String thirdValue;
 String fourthValue;
 DEBUG_PRINTLN(F("Auto mode checking"));
-Serial.println(F("sasa"));
+Serial.println(F("autochecking"));
 Serial.println(Calidx);
 if (timeStatus()==timeSet && lconfig->Mode=="Auto")
 {
@@ -495,7 +499,7 @@ for (i=0;i<Calidx;i++)
 Serial.println(fourthValue);
         total=h.toInt()*60+sec.toInt();
         if (total<= min) min=total;
-        if (total >= max) {max=total; cmdmax=thirdValue;
+        if (total >= max) {max=total; cmdmax=thirdValue;}
         Serial.println(total);
         Serial.println(hour(t)*60+minute(t));
         if ( (hour(t)*60+minute(t) >= total) && (total > lasttotal )) {
@@ -509,7 +513,7 @@ Serial.println(fourthValue);
             
       }
     }
-    }}    
+    }   
   if (lasttotal==0 && (hour(t)*60+minute(t)) < min  && cmdmax != "Off") {
      modeCal=cmdmax;
           DEBUG_PRINT(F("Auto mode, set to "));
