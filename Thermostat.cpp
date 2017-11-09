@@ -82,11 +82,35 @@ load_Cal();
 //0 ALL
 
 DEBUG_PRINTLN(F("Setting Alarms"));
-
+ uint8_t nc=0;
 if (Calidx >0) {
-        AlarmTab =new AlarmID_t[Calidx]; //malloc(Calidx*sizeof(AlarmID_t*))
+
+        for (i=0;i<Calidx;i++)
+    {
+    int commaIndex = Cal[i].indexOf(','); 
+    int secondcommaIndex = Cal[i].indexOf(',', commaIndex + 1);
+    int thirdcommaIndex = Cal[i].indexOf(',', secondcommaIndex + 1);
+    String fourthValue = Cal[i].substring(thirdcommaIndex + 1); // To the end of the string
+    switch(fourthValue.charAt(0))
+      {
+        case 'A':
+        nc+=7;
+      break;
+      case '8':
+      nc+=5;
+      break;
+      
+      case '9':
+      nc+=2;
+      break;
+
+      default:
+      nc++;
+      }}
+        AlarmTab =new AlarmID_t[nc]; //malloc(Calidx*sizeof(AlarmID_t*))
         }
         else AlarmTab=NULL;
+nc=0;
 for (i=0;i<Calidx;i++)
     {
     int commaIndex = Cal[i].indexOf(',');
@@ -104,19 +128,19 @@ for (i=0;i<Calidx;i++)
       {
         case 'A':
         //if (fourthValue.charAt(1)=='L')
-      setAlarm(i,thirdValue.charAt(0),0,h.toInt(),sec.toInt());
+      setAlarm(nc++,thirdValue.charAt(0),0,h.toInt(),sec.toInt());
       break;
       case '8':
-      for(j=2;j<=6;j++) setAlarm(i,thirdValue.charAt(0),j,h.toInt(),sec.toInt());
+      for(j=2;j<=6;j++) setAlarm(nc++,thirdValue.charAt(0),j,h.toInt(),sec.toInt());
       break;
       
       case '9':
-      setAlarm(i,thirdValue.charAt(0),1,h.toInt(),sec.toInt());
-      setAlarm(i,thirdValue.charAt(0),7,h.toInt(),sec.toInt());
+      setAlarm(nc++,thirdValue.charAt(0),1,h.toInt(),sec.toInt());
+      setAlarm(nc++,thirdValue.charAt(0),7,h.toInt(),sec.toInt());
       break;
 
       default:
-      setAlarm(i,thirdValue.charAt(0),fourthValue.toInt(),h.toInt(),sec.toInt());
+      setAlarm(nc++,thirdValue.charAt(0),fourthValue.toInt(),h.toInt(),sec.toInt());
       }
       }
     }   
@@ -140,6 +164,7 @@ else if (lconfig->domo) ldomo->sendMode(F("Off"));
 //0 ALL
 void Thermostat::setAlarm(uint8_t i,char mode, uint8_t nbday,uint8_t h,uint8_t s)
 {
+//Serial.println ("ALARM "+String(i)+String("::")+String(nbday)+String(";")+String(h)+String(":")+String(s)+String(";")+String(mode));
   switch(mode)
         {
           case 'O':

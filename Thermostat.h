@@ -1,7 +1,6 @@
 #ifndef Thermostat_h
 #define Thermostat_h
 
-
 #include <TimeAlarms.h>
 #include "Application.h"
 #include "SensorManager.h"
