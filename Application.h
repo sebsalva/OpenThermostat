@@ -1,16 +1,18 @@
 #ifndef Application_h
 #define Application_h
-#define DEBUG
+
+#define DEBUG 
 #ifdef DEBUG
-  #define DEBUG_PRINT(x)     Serial.print (x)
-  #define DEBUG_PRINTDEC(x)     Serial.print (x, DEC)
-  #define DEBUG_PRINTLN(x)  Serial.println (x)
+  #define DEBUG_PRINT(x)     Serial.print(x)
+  #define DEBUG_PRINTDEC(x)     Serial.print(x, DEC)
+  #define DEBUG_PRINTLN(x)  Serial.println(x)
 #else
   #define DEBUG_PRINT(x)
   #define DEBUG_PRINTDEC(x)
   #define DEBUG_PRINTLN(x) 
 #endif
-# define NBLOGS 15
+
+#define NBLOGS 15
 
 #include <Time.h>
 #include <WString.h>

@@ -15,16 +15,6 @@
 // ------------------------------------------------------------------------------------------------------------------------------------------------------
 // Global var
 // ------------------------------------------------------------------------------------------------------------------------------------------------------
-#define DEBUG
-#ifdef DEBUG
-  #define DEBUG_PRINT(x)     Serial.print (x)
-  #define DEBUG_PRINTDEC(x)     Serial.print (x, DEC)
-  #define DEBUG_PRINTLN(x)  Serial.println (x)
-#else
-  #define DEBUG_PRINT(x)
-  #define DEBUG_PRINTDEC(x)
-  #define DEBUG_PRINTLN(x) 
-#endif
 
 #define DHTTYPE DHT22 // DÃ©finition du type de capteur de tempÃ©rature / humiditÃ©
 
@@ -56,6 +46,7 @@ Web web(&config,&sensorMan,&thermos,&WifMan,&irmanager,&timentp, &domo);
 void setup() {
 ESP.eraseConfig();
 Serial.begin(115200);  // Serial connection from ESP-01 via 3.3v console cable
+while (!Serial) ; // wait for Arduino Serial Monitor
 config.init();
 sensorMan.init();
 WifMan.initWifi();

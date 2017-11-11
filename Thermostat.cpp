@@ -26,7 +26,7 @@ uint8_t i,j;
 //free alarm ????
 if (Cal != NULL) {
   delete(Cal);
-  for(i=0;i<Calidx;i++) Alarm.free(AlarmTab[i]);
+  for(i=0;i<Calidx;i++) {Alarm.disable(AlarmTab[i]); Alarm.free(AlarmTab[i]);}
   delete AlarmTab;
 }
 
@@ -82,7 +82,7 @@ load_Cal();
 //0 ALL
 
 DEBUG_PRINTLN(F("Setting Alarms"));
- uint8_t nc=0;
+uint8_t nc=0;
 if (Calidx >0) {
 
         for (i=0;i<Calidx;i++)
@@ -164,7 +164,7 @@ else if (lconfig->domo) ldomo->sendMode(F("Off"));
 //0 ALL
 void Thermostat::setAlarm(uint8_t i,char mode, uint8_t nbday,uint8_t h,uint8_t s)
 {
-//Serial.println ("ALARM "+String(i)+String("::")+String(nbday)+String(";")+String(h)+String(":")+String(s)+String(";")+String(mode));
+DEBUG_PRINTLN("ALARM "+String(i)+String("::")+String(nbday)+String(";")+String(h)+String(":")+String(s)+String(";")+String(mode));
   switch(mode)
         {
           case 'O':
@@ -176,7 +176,7 @@ void Thermostat::setAlarm(uint8_t i,char mode, uint8_t nbday,uint8_t h,uint8_t s
           case 'E':
           if (nbday==0)
           AlarmTab[i]=Alarm.alarmRepeat(h,s,0, globalEco);
-          else  AlarmTab[i]=Alarm.alarmRepeat((timeDayOfWeek_t)nbday,h,s,0, globalEco);
+          else AlarmTab[i]=Alarm.alarmRepeat((timeDayOfWeek_t)nbday,h,s,0, globalEco);
           break;
 
           case 'C':
@@ -192,7 +192,7 @@ void Thermostat::setAlarm(uint8_t i,char mode, uint8_t nbday,uint8_t h,uint8_t s
           break;
           
           default:
-          DEBUG_PRINTLN(F("Error alarm"));
+          DEBUG_PRINTLN(F("Error alarm")); Serial.println("sasa");
         }   
 }
 
