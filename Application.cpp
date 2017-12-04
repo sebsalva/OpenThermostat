@@ -89,10 +89,14 @@ f.close();
 SPIFFS.end();
 }
 
+String Application::getfile()
+{
+return file;   
+//Serial.println("Save config : "+chaineFormatee);
+}
 void Application::save()
 {
-String chaineFormatee = String(TempE,1)+";"+ String(HumE,1)+";"+Wssid+";"+Wpass+";"+dhtType+";"+dhtPin+";"+pirPin+";"+irPin+";"+AP+";"+Ntp+";"+String(Timezone)+";"+Ip+";"+Gat+";"+Dns+";"+Mode+";"+String(Temp,1)+";"+String(FTemp,1)+";"+pwd+";"+String(domo)+";"+ domoIP+";"+String(domoPir)+";"+String(domoTemp)+";"+String(domoMode)+";"+String(domogTemp)+";";   
-Serial.println("Save config : "+chaineFormatee);
+String chaineFormatee =getfile();
 DEBUG_PRINTLN("Save config : "+chaineFormatee);
 SPIFFS.begin();
 SPIFFS.remove(file); // Supression de l'ancien fichier pour le remplacer par le nouveau contenant les nouvelles valeurs

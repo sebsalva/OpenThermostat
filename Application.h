@@ -1,7 +1,7 @@
 #ifndef Application_h
 #define Application_h
 
-#define DEBUG 
+//#define DEBUG 
 #ifdef DEBUG
   #define DEBUG_PRINT(x)     Serial.print(x)
   #define DEBUG_PRINTDEC(x)     Serial.print(x, DEC)
@@ -16,7 +16,7 @@
 
 #include <Time.h>
 #include <WString.h>
-#include "FS.h"
+#include <FS.h>
 
 class Application
 {
@@ -63,7 +63,7 @@ void AddLog(String);
 uint8_t getNblogs() {return nblogs;};
 uint8_t getFirstlog() {return firstlog;};
 String * getLogs() {return Logs;};
-
+String getfile();
 };
 
 #endif

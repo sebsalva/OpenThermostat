@@ -30,7 +30,7 @@ unsigned long timer1=0.0;
 uint8_t loggingloop=0;
 
 //Objects
-Application config("f6.txt");
+Application config("f5.txt");
 TimeNtp timentp;
 WifiManager WifMan(&config);
 DomoticzBroadcaster domo(&config); 
@@ -87,7 +87,7 @@ if (loggingloop==10) config.Access=false;
 sensorMan.ReadTempHum();
 
 //thermostat control state
-  if (thermos.IsStarted()== 1)
+  if (thermos.IsStarted())
   {
   //check thermos statut with current temperature
   thermos.run();

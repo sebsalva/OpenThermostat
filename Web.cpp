@@ -85,6 +85,15 @@ httpUpdater.setup(&server, "/up_firmware", "admin", lconfig->pwd.c_str());
 // formulaire config
   server.on("/config",HTTP_POST, std::bind(&Web::saveconfig, this));
 
+// download config
+  server.on("/saveconfigfile",HTTP_GET, std::bind(&Web::saveconfigfile, this));
+
+// upload config
+ // server.on("/loadconfigfile",HTTP_POST, std::bind(&Web::loadconfigfile, this));
+server.on("/loadconfigfile", HTTP_POST, [&]() {
+  server.send(200, "text/plain", "upload\r\n");
+  }, std::bind(&Web::loadconfigfile, this));
+  
 // formulaire mode racine
   server.on("/mode",HTTP_POST, std::bind(&Web::modee, this));
 
@@ -125,15 +134,17 @@ server.on("/delplanning",HTTP_GET, std::bind(&Web::delplanning, this)); //should
 
 // root page
 void Web::handle_root() {
-  bool b=false;
+bool b=false;
 String userVal ="";
+String e;
 
 userVal=server.arg("pwd");
 if (userVal != lconfig->pwd) // Si l'utilisateur Ã  saisit une valeur alors on Ã©crit dans la mÃ©moire cette valeur
 {
 if (lconfig->Access == false){
 String r="";
-String e=F("Wrong password");
+if (userVal=="") e=F("Password required");
+else e=F("Wrong password");
 formlogging(r,e);
 server.send(200, "text/html",r);
 return;
@@ -143,7 +154,6 @@ else {
   String str="";
   root(lconfig,lsensor,ldomo,str);
   server.send(200, "text/html", str);
-  //delay(100);
 }
 
 // sensor page
@@ -285,6 +295,44 @@ void Web::calibrateH()
   {
     
     server.send(200, "text/plain", String(lconfig->HumE));
+  }
+}
+
+void Web::saveconfigfile()
+{
+  //server.send(200, "text/plain","sending file");
+  server.sendHeader("Content-Disposition", "attachment; filename=settings.txt");
+  
+SPIFFS.begin();
+  File file = SPIFFS.open(lconfig->getfile(), "r");                    // Open the file
+   size_t sent =  server.streamFile(file, "application/octet-stream" );    // Send it to the client
+    file.close();    
+    SPIFFS.end();                        
+}
+
+void Web::loadconfigfile()
+{
+HTTPUpload& upload = server.upload();
+  if(upload.status == UPLOAD_FILE_START){
+    String filename = upload.filename;
+    if(!filename.startsWith("/")) filename = "/"+filename;
+    SPIFFS.begin();
+    DEBUG_PRINTLN(F("handleFileUpload Name: ")); DEBUG_PRINTLN(filename);
+    fsUploadFile = SPIFFS.open(lconfig->getfile(), "w");            // Open the file for writing in SPIFFS (create if it doesn't exist)
+    filename = String();
+  } else if(upload.status == UPLOAD_FILE_WRITE){
+    if(fsUploadFile)
+      fsUploadFile.write(upload.buf, upload.currentSize); // Write the received bytes to the file
+  } else if(upload.status == UPLOAD_FILE_END){
+    if(fsUploadFile) {                                    // If the file was successfully created
+      fsUploadFile.close();     
+      SPIFFS.end();// Close the file again
+      DEBUG_PRINTLN(F("handleFileUpload Size: ")); DEBUG_PRINTLN(upload.totalSize);
+      server.sendHeader("Location","/reboot");      // Redirect the client to the success page
+      server.send(303);
+    } else {
+      server.send(500, "text/plain", "500: couldn't create file");
+    }
   }
 }
 
@@ -679,13 +727,13 @@ str+=F("'>");
  
 void Web::Add_hrefbutton(String & str, const String & type, const String & label,const String & url)
 {
-str+=F("<p><a href=\"/");
+str+=F("<a href=\"/");
 str+=url;
 str+=F("\" class=\"btn btn-sm ");
 str+=type;
 str+=F(" \">");
 str+=label;
-str+=F("</a></p>");
+str+=F("</a>");
 }
 
 
@@ -755,22 +803,31 @@ void Web::mode(String &opt,String mode)
 
 void Web::model(String &opt,String mdl)
 {
+  uint8_t i=0;
+  String tab[]={F("toshiba"),F("daikin"),F("panasonic_ckp"),F("panasonic_dke"),F("panasonic_jke"),F("panasonic_nke"),F("carrier_mca"),F("carrier_nqv"),F("midea"),F("fujitsu_awyz"),F("mitsubishi_fd"),F("mitsubishi_fe"),
+  F("mitsubishi_msy"),F("samsung_aqv"),F("samsung_fjm"),F("sharp"),F("mitsubishi_heavy_zj"),F("mitsubishi_heavy_zm"),F("hyundai"),F("hisense_aud"),F("gree"),F("fuego"),F("ballu")};
   opt=F(" <option value='-1' "); 
   if(mdl=="") opt+=F("selected "); 
   opt+=F("> </option>");
-  opt+=F("<option value='daikin' "); 
-  if(mdl=="daikin") opt+=F("selected "); 
-  opt+=F(">Daikin</option>");
-  opt+=F("<option value='toshiba' "); 
-  if(mdl=="toshiba") opt+=F("selected "); 
-  opt+=F(">Toshiba</option>");
+
+ for(i=0;i<23;i++)
+ {
+  opt+=F("<option value='");
+  opt+=tab[i];
+  opt+=F("' "); 
+  if(mdl==tab[i]) opt+=F("selected "); 
+  opt+=F(">");
+  opt+=tab[i];
+  opt+=F("</option>");
+  }
+  
 }
 
 void Web::gpio(String &opt , uint8_t gpio)
 {
   opt=F(" <option value='-1' "); 
   if(gpio==-1) opt+=F("selected "); 
-  opt+=F("> </option>");
+  opt+=F(">Off</option>");
   opt+=F("<option value='0' ");
   if(gpio==0) opt+=F("selected ");
   opt+=F(">GPIO-0 (D3)</option><option value='1' ");
@@ -881,13 +938,18 @@ str+=String(t->presmax);
 str+=F("\"/></td></tr>");
 str+=F("</tbody></table>");
 Add_button(str, F("btn-b"),F("Submit"));
-str+=F("</form>");
+str+=F("</form></br>");
 Add_hrefbutton(str,F("btn-a"),F("Thermostat Planning configuration"),F("planning"));
 Add_hrefbutton(str,F("btn-a"),F("Domoticz configuration"),F("Dombroadcaster"));
 if (ESP.getFlashChipRealSize() > 524288)
   {
   Add_hrefbutton(str,F("btn-a"),F("Firmware update"),F("up_firmware"));
   }
+  str+=F("</br>");
+Add_hrefbutton(str,F("btn-a"),F("Save Config"),F("saveconfigfile"));
+  str+=F("<form method=\"post\" enctype=\"multipart/form-data\" action=\"/loadconfigfile\"><input type=\"file\" name=\"upload\" id=\"fileUpload\">");
+  Add_button(str, F("btn-a"),F("Upload config"));
+str+=F("</form>");
 end(str);
 }
 
@@ -1004,7 +1066,7 @@ str+=F("<td><input name=\"when2\" id=\"when2\" value=\"8\" type=\"radio\"></td><
 str+=F("<tr><td><label for=\"when3\">Weekends</label></td>");
 str+=F("<td><input name=\"when3\" id=\"when3\" value=\"9\" type=\"radio\"></td></tr>");
 str+=F("<tr><td><label for=\"when4\">Selected Days</label></td>");
-str+=F("<td><input name=\"when4\" id=\"when4\" value=\"day\" type=\"radio\"></td></tr>");
+str+=F("<td><input name=\"when4\" id=\"when4\" value=\"day\" type=\"radio\" checked></td></tr>");
 str+=F("<tr><td></td><td>");
 Add_table(str, F("Days"));
 str+=F("<tr><td><label for=\"ChkMon\">Monday</label></td>");

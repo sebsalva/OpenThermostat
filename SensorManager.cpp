@@ -4,8 +4,9 @@ SensorManager::SensorManager()
 {
 // Initialisation du capteur de tempÃ©rature DHT
 lconfig=new Application();
-dht=new DHT(lconfig->dhtPin, DHT22);
+if (lconfig->dhtPin != -1) dht=new DHT(lconfig->dhtPin, DHT22);
 }
+
 SensorManager::SensorManager(Application *c, DomoticzBroadcaster * domo)
 {
 lconfig=c;
@@ -23,16 +24,19 @@ void SensorManager::init()
 {
 Temp=-1.0;
 Hum=-1.0;
-dht=new DHT(lconfig->dhtPin, DHT22);
-dht->begin();           // Initialiser le capteur DHT
+if (lconfig->dhtPin != -1) {
+  dht=new DHT(lconfig->dhtPin, DHT22);
+  dht->begin();           // Initialiser le capteur DHT
 //pinMode(LED_BUILTIN, OUTPUT); // DÃ©finition de la LED d'affichage
 pinMode(lconfig->pirPin, INPUT);
+}
 }
 
 
 // Retourne la chaine formatÃ©e de la tempÃ©rature et de l'humiditÃ©
 void SensorManager::ReadTempHum() {
-float humidity, temp;  // Valeurs lues par la sonde
+ float humidity, temp;  // Valeurs lues par la sonde
+  if (lconfig->dhtPin == -1) return;
   // Lecture du capteur possible toutes les deux secondes
   unsigned long currentMillis = millis();
 
@@ -56,6 +60,7 @@ float humidity, temp;  // Valeurs lues par la sonde
 // Retourne la chaine formatÃ©e de la tempÃ©rature et de l'humiditÃ©
 float SensorManager::getDirectTemp() {
 float temp;  // Valeurs lues par la sonde
+if (lconfig->dhtPin == -1) return 0.0;
     temp = dht->readTemperature(); // Lecture de la tempÃ©rature (Â°C)
     // VÃ©rification de la lecture : si les valeurs humidity et temp ne sont pas nes nombres alors on retourne une erreur
     if (isnan(temp)) {
@@ -71,6 +76,7 @@ float temp;  // Valeurs lues par la sonde
 // Retourne la chaine formatÃ©e de l'humiditÃ©
 float SensorManager::getDirectHum() {
 float humidity;  // Valeurs lues par la sonde
+if (lconfig->dhtPin == -1) return 0.0;
     humidity = dht->readHumidity(); // Lecture de l'humiditÃ© (pourcentage)
     // VÃ©rification de la lecture : si les valeurs humidity et temp ne sont pas nes nombres alors on retourne une erreur
     if (isnan(humidity)) {
@@ -88,6 +94,7 @@ void SensorManager::readPir(uint8_t prestime)
 {
 long currentMillis = millis();
 uint8_t p;
+if (lconfig->pirPin == -1) return;
 // Si le dÃ©lai entre la derniÃ¨re et la nouvelle lecture a Ã©tÃ© respectÃ© ou que le capteur est Ã  zero (pas de mouvement) alors on lis le capteur
   // Le delai permets de laisser le temps au potentiel client de lire qu'un mouvement est dÃ©tectÃ© par le capteur
  if (currentMillis - previousMillisPIR >= 5000 || inputStatePIR == 0) {

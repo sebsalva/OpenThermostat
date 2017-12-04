@@ -1,7 +1,19 @@
 #ifndef Web_h
 #define Web_h
 
+#include <ESP8266WiFi.h> 
+#include <WiFiClient.h> 
+#include <ESP8266WebServer.h> 
+#include <ESP8266mDNS.h> 
+#include <FS.h> 
+
+#include <FS.h>                   
+#include <ESP8266WiFi.h>
+#include <WiFiClient.h>
+#include <ESP8266mDNS.h>
 #include <ESP8266WebServer.h>
+
+//#include <ESP8266WebServer.h>
 #include <ESP8266HTTPUpdateServer.h>
 #include "Application.h"
 #include "SensorManager.h"
@@ -21,7 +33,7 @@ class Web
 {
 private:
 ESP8266HTTPUpdateServer httpUpdater;  // Web server for firmware update
-
+File fsUploadFile; //File used for uploading config
 Application *lconfig;
 SensorManager *lsensor;
 Thermostat * lthermos;
@@ -47,7 +59,8 @@ void delplanning();
 void saveplanning();
 void savedomo();
 void logging();
-
+void saveconfigfile();
+void loadconfigfile();
 //html based
 void Add_refresh(String & str);
 void Add_table(String & str, const String &);
